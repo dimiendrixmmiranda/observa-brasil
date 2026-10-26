@@ -1,10 +1,14 @@
+"use client";
 import Image from "next/image";
 import { HiOutlineMenu } from "react-icons/hi";
 import SidebarComponent from "../sidebar/SidebarComponent";
 import Link from "next/link";
 import { MdOutlineLightMode } from "react-icons/md";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
+    const pathname = usePathname();
+
     return (
         <header className="bg-cor-de-fundo p-2 border-b border-zinc-300 grid grid-cols-[1fr_50px] lg:flex lg:gap-3 xl:gap-4">
             <div className="flex items-center gap-2">
@@ -21,34 +25,34 @@ export default function Header() {
             </div>
             <div className="items-center hidden lg:flex 2xl:flex-1 2xl:justify-center">
                 <ul className="flex items-center justify-center gap-2">
-                    <li className="text-xs px-2 py-1 font-bold whitespace-nowrap 3xl:text-sm">
+                    <li className="text-xs font-bold whitespace-nowrap 3xl:text-sm">
                         <Link href={'/'}>
-                            <p>Início</p>
+                            <p className={`${pathname === '/' ? 'border-b border-verde-claro px-2 py-1 scale-105 transition-all' : ''} hover:scale-105 transition-all duration-300`}>Início</p>
                         </Link>
                     </li>
                     <li className="text-xs px-2 py-1 font-bold whitespace-nowrap 3xl:text-sm">
                         <Link href={'/'}>
-                            <p>Indicadores</p>
+                            <p className={`${pathname === '/menu/indicadores' ? 'border-b border-verde-claro px-2 py-1 scale-105 transition-all' : ''} hover:scale-105 transition-all duration-300`}>Indicadores</p>
+                        </Link>
+                    </li>
+                    <li className="text-xs px-2 py-1 font-bold whitespace-nowrap 3xl:text-sm">
+                        <Link href={'/menu/estados'}>
+                            <p className={`${pathname === '/menu/estados' ? 'border-b border-verde-claro px-2 py-1 scale-105 transition-all' : ''} hover:scale-105 transition-all duration-300`}>Estados e Regiões</p>
                         </Link>
                     </li>
                     <li className="text-xs px-2 py-1 font-bold whitespace-nowrap 3xl:text-sm">
                         <Link href={'/'}>
-                            <p>Estados e Regiões</p>
+                            <p className={`${pathname === '/menu/comparar' ? 'border-b border-verde-claro px-2 py-1 scale-105 transition-all' : ''} hover:scale-105 transition-all duration-300`}>Comparar</p>
                         </Link>
                     </li>
                     <li className="text-xs px-2 py-1 font-bold whitespace-nowrap 3xl:text-sm">
-                        <Link href={'/'}>
-                            <p>Comparar</p>
+                        <Link href={'/menu/direitos'}>
+                            <p className={`${pathname === '/menu/direitos' ? 'border-b border-verde-claro px-2 py-1 scale-105 transition-all' : ''} hover:scale-105 transition-all duration-300`}>Direitos e Cidadania</p>
                         </Link>
                     </li>
                     <li className="text-xs px-2 py-1 font-bold whitespace-nowrap 3xl:text-sm">
-                        <Link href={'/'}>
-                            <p>Direitos e Cidadania</p>
-                        </Link>
-                    </li>
-                    <li className="text-xs px-2 py-1 font-bold whitespace-nowrap 3xl:text-sm">
-                        <Link href={'/'}>
-                            <p>Sobre</p>
+                        <Link href={'/menu/sobre'}>
+                            <p className={`${pathname === '/menu/sobre' ? 'border-b border-verde-claro px-2 py-1 scale-105 transition-all' : ''} hover:scale-105 transition-all duration-300`}>Sobre</p>
                         </Link>
                     </li>
                 </ul>

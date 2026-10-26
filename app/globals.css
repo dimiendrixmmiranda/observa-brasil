@@ -6,11 +6,12 @@
   --foreground: #171717;
   --verde: #04904a;
   --verde-claro: #21ce86;
+  --verde-fundo: #9ed6c5;
   --verde-escuro: #082c0a;
-  --azul-escuro: #0e293c;
+  --azul-escuro: #1e1d81;
   --cor-de-fundo: #f9fbfe;
 }
-
+/* cor de fundo: #F8FDFE */
 
 @theme inline {
   --color-background: var(--background);
@@ -18,6 +19,7 @@
   --color-verde: var(--verde);
   --color-verde-claro: var(--verde-claro);
   --color-verde-escuro: var(--verde-escuro);
+  --color-verde-fundo: var(--verde-fundo);
   --color-azul-escuro: var(--azul-escuro);
   --color-cor-de-fundo: var(--cor-de-fundo);
   --font-sans: var(--font-geist-sans);

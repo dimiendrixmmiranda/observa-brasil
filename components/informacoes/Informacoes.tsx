@@ -1,8 +1,14 @@
 'use client';
 
+import { Desigualdade } from "@/types/Desigualdade";
+import { ExpectativaDeVida } from "@/types/ExpectativaDeVida";
+import { IndiceMatriculasEnsinoFundamental } from "@/types/IndiceMatriculasEnsinoFundamental";
+import { PopulacaoDoBrasil } from "@/types/PopulacaoBrasil";
+import { TaxaEmprego } from "@/types/TaxaEmprego";
+import { calcularVariacaoEducacao, calcularVariacaoExpectativaDeVida, calcularVariacaoIndiceDesigualdade, calcularVariacaoPopulacao, calcularVariacaoTaxaDeEmprego } from "@/utils/utilities";
 import React from "react";
 import { BsMortarboard, BsSuitcaseLg } from "react-icons/bs";
-import { FaArrowTrendUp, FaUsers } from "react-icons/fa6";
+import { FaArrowTrendDown, FaArrowTrendUp, FaUsers } from "react-icons/fa6";
 import { IoMdHeartEmpty } from "react-icons/io";
 import { IoCalendarNumberOutline } from "react-icons/io5";
 import { LiaBalanceScaleLeftSolid } from "react-icons/lia";
@@ -13,13 +19,39 @@ type CoresCard = {
     icone: string
 }
 
-export default function Informacoes() {
+interface InformacoesProps {
+    populacaoDoBrasil: PopulacaoDoBrasil[]
+    taxaEmprego: TaxaEmprego[]
+    espectativaDeVida: ExpectativaDeVida[]
+    desigualdade: Desigualdade[]
+    indiceMatriculasEnsinoFundamental: IndiceMatriculasEnsinoFundamental[]
+}
+
+export default function Informacoes({ populacaoDoBrasil, taxaEmprego, espectativaDeVida, desigualdade, indiceMatriculasEnsinoFundamental}: InformacoesProps) {
+    const populacaoAnoAtual = populacaoDoBrasil[1]
+    const populacaoAnoAnterior = populacaoDoBrasil[0]
+
+    const taxaEmpregoAnoAtual = taxaEmprego[1]
+    const taxaEmpregoAnoAnterior = taxaEmprego[0]
+
+    const expectativaDeVidaAtual = espectativaDeVida[1]
+    const expectativaDeVidaAnterior = espectativaDeVida[0]
+
+    const indiceDesigualdadeAnoAtual = desigualdade[1]
+    const indiceDesigualdadeAnoAnterior = desigualdade[0]
+    
+    const indiceMatriculasEnsinoFundamentalAnoAtual = indiceMatriculasEnsinoFundamental[1]
+    const indiceMatriculasEnsinoFundamentalAnoAnterior = indiceMatriculasEnsinoFundamental[0]
+
+
+
     const card = (
         icone: React.ReactNode,
         cores: CoresCard,
         titulo: string,
         dado: string,
-        complementoDado: string
+        complementoDado: string,
+        variacao: number
     ) => {
         return (
             <li
@@ -45,15 +77,23 @@ export default function Informacoes() {
                     </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <FaArrowTrendUp className="text-verde-claro shrink-0" />
+                <div className="flex items-center gap-2 mt-auto">
+                    {
+                        variacao >= 0 ? (
+                            <FaArrowTrendUp className="text-verde-claro shrink-0" />
+                        ): (
+                            <FaArrowTrendDown className="text-red-600 shrink-0" />
+                        )
+                    }
                     <span className="text-sm">
-                        0,5% em relação a 2021
+                        {variacao.toFixed(3)}% em relação a {populacaoAnoAnterior.ano}
                     </span>
                 </div>
             </li>
         )
     }
+
+    console.log( calcularVariacaoIndiceDesigualdade(indiceDesigualdadeAnoAtual, indiceDesigualdadeAnoAnterior))
 
     return (
         <section className="p-4 flex flex-col gap-5">
@@ -72,7 +112,7 @@ export default function Informacoes() {
                     <IoCalendarNumberOutline className="shrink-0" />
 
                     <p className="text-sm">
-                        Dados mais recentes: 2022
+                        Dados mais recentes: {populacaoAnoAtual.ano}
                     </p>
                 </div>
             </div>
@@ -85,8 +125,9 @@ export default function Informacoes() {
                         icone: "bg-verde-claro",
                     },
                     "População",
-                    "203,1 milhões",
-                    "de habitantes"
+                    `${Number(populacaoAnoAtual.populacao).toLocaleString("pt-BR")} milhões`,
+                    "de habitantes",
+                    calcularVariacaoPopulacao(populacaoAnoAtual, populacaoAnoAnterior)
                 )}
 
                 {card(
@@ -97,8 +138,10 @@ export default function Informacoes() {
                         icone: "bg-blue-600",
                     },
                     "Educação",
-                    "93,1%",
-                    "de matrículas no ensino fundamental"
+                    `${indiceMatriculasEnsinoFundamentalAnoAtual.escolarizacao}%`,
+                    "taxa de escolarização de pessoas de 6 a 14 anos",
+                    calcularVariacaoEducacao(indiceMatriculasEnsinoFundamentalAnoAtual, indiceMatriculasEnsinoFundamentalAnoAnterior)
+
                 )}
 
                 {card(
@@ -109,8 +152,10 @@ export default function Informacoes() {
                         icone: "bg-purple-600",
                     },
                     "Emprego",
-                    "56,8%",
-                    "da população em idade ativa"
+                    `${taxaEmpregoAnoAtual.emprego}%`,
+                    "da população em idade ativa",
+                    calcularVariacaoTaxaDeEmprego(taxaEmpregoAnoAtual, taxaEmpregoAnoAnterior)
+
                 )}
 
                 {card(
@@ -121,8 +166,10 @@ export default function Informacoes() {
                         icone: "bg-red-600",
                     },
                     "Saúde",
-                    "71,5 anos",
-                    "de esperança de vida ao nascer"
+                    `${expectativaDeVidaAtual.expectativaVida} anos`,
+                    "de esperança de vida ao nascer",
+                    calcularVariacaoExpectativaDeVida(expectativaDeVidaAtual, expectativaDeVidaAnterior)
+
                 )}
 
                 {card(
@@ -133,8 +180,9 @@ export default function Informacoes() {
                         icone: "bg-yellow-600",
                     },
                     "Desigualdade",
-                    "0,518",
-                    "índice de Gini da renda"
+                    `${indiceDesigualdadeAnoAtual.indiceGini}`,
+                    "índice de Gini da renda",
+                    calcularVariacaoIndiceDesigualdade(indiceDesigualdadeAnoAtual, indiceDesigualdadeAnoAnterior)
                 )}
             </ul>
         </section>
