@@ -2,9 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { BsMortarboard, BsSuitcaseLg } from "react-icons/bs";
 import { FaArrowRightLong } from "react-icons/fa6";
-import { IoMdHeartEmpty } from "react-icons/io";
+import { IoMdArrowRoundForward, IoMdHeartEmpty } from "react-icons/io";
 import { LiaBalanceScaleLeftSolid } from "react-icons/lia";
 import { LuLeaf } from "react-icons/lu";
+import { MdOutlineLocationOn } from "react-icons/md";
+import { VscGraph } from "react-icons/vsc";
 export default function Indicadores() {
     const card = (
         icone: React.ReactNode,
@@ -115,6 +117,83 @@ export default function Indicadores() {
                         "/"
                     )}
                 </ul>
+            </section>
+            <section className="p-4 flex flex-col gap-5">
+                <div>
+                    <div className="rounded-full p-2 text-4xl bg-verde text-white">
+                        <MdOutlineLocationOn />
+                    </div>
+                    <div>
+                        <h2 className="font-bold text-2xl text-verde-escuro">Dados por Estato e Região</h2>
+                        <p>
+                            Explore as informações de cada estado e das 5 grandes regiões do Brasil
+                        </p>
+                        <p>
+                            Compare indicadores, descubra as particularidades de cada territorio e veja como cada regiao contribui para o desenvolvimento do país.
+                        </p>
+                        <button>
+                            <p>Ver estados e regiões</p>
+                            <IoMdArrowRoundForward />
+                        </button>
+                    </div>
+                </div>
+                <div className="relative w-40 h-40">
+                    <Image alt="Mapa do Brasil" src={'/mapa-do-brasil.png'} fill className="object-contain" />
+                </div>
+                <div>
+                    <ul>
+                        <li className="flex items-center">
+                            <div className="w-6 h-6 rounded-full bg-verde"></div>
+                            <div className="flex justify-between">
+                                <p>Norte</p>
+                                <p>7 Estados</p>
+                            </div>
+                        </li>
+                        <li className="flex items-center">
+                            <div className="w-6 h-6 rounded-full bg-verde"></div>
+                            <div className="flex justify-between">
+                                <p>Norte</p>
+                                <p>7 Estados</p>
+                            </div>
+                        </li>
+                        <li className="flex items-center">
+                            <div className="w-6 h-6 rounded-full bg-verde"></div>
+                            <div className="flex justify-between">
+                                <p>Norte</p>
+                                <p>7 Estados</p>
+                            </div>
+                        </li>
+                        <li className="flex items-center">
+                            <div className="w-6 h-6 rounded-full bg-verde"></div>
+                            <div className="flex justify-between">
+                                <p>Norte</p>
+                                <p>7 Estados</p>
+                            </div>
+                        </li>
+                        <li className="flex items-center">
+                            <div className="w-6 h-6 rounded-full bg-verde"></div>
+                            <div className="flex justify-between">
+                                <p>Norte</p>
+                                <p>7 Estados</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <div>
+                        <VscGraph />
+                    </div>
+                    <div>
+                        <h3>Comparação entre regiões</h3>
+                        <p>
+                            Veja como cada região se sai em diferentes indicadores e descubra as maiores diferenças e semelhanças entre elas.
+                        </p>
+                        <button>
+                            <p>Explorar comparativo</p>
+                            <FaArrowRightLong />
+                        </button>
+                    </div>
+                </div>
             </section>
             <section className="p-4 gap-3 bg-verde-claro/30 grid grid-rows-2 grid-cols-[70px_1fr] md:gap-y-1">
                 <div className="relative w-16 h-16 md:row-span-2">

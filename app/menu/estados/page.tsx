@@ -1,6 +1,6 @@
-'use client'
-
 import Template from "@/components/template/Template";
+import { buscarEconomiaEstados } from "@/lib/ibge-cache";
+import { mapearEstadosPorRegiao } from "@/utils/utilities";
 import Image from "next/image";
 import { FaArrowRight, FaQuoteLeft, FaRegSun } from "react-icons/fa6";
 import { HiArrowTrendingUp } from "react-icons/hi2";
@@ -12,9 +12,41 @@ import { PiBagSimpleFill } from "react-icons/pi";
 import { RiWindyLine } from "react-icons/ri";
 import { TiArrowRight } from "react-icons/ti";
 
-export default function Page() {
+export default async function Page() {
+    const estadoEconomico = await buscarEconomiaEstados()
+    const dadosPorRegiao = mapearEstadosPorRegiao(estadoEconomico);
 
-    const gerarCardRegiaoDestaque = (icone: React.ReactNode, cor: string, corDaBorda: string, nomeDaRegiao: string, listaDeEstados: string, imagem: string, corDaFonte: string) => {
+    const gerarCardRegiaoDestaque = (icone: React.ReactNode, cor: string, corDaBorda: string, nomeDaRegiao: string, imagem: string, populacao: string, pib: string) => {
+        const converterValor = (valor: string): number => {
+            const numero = valor
+                .replace(/\s/g, "")
+                .replace(/milhões|milhão|mi/gi, "")
+                .replace(/\./g, "")
+                .replace(",", ".")
+
+            const resultado = Number(numero)
+
+            if (!Number.isFinite(resultado)) return 0
+
+            if (/mi|milhão|milhões/i.test(valor)) {
+                return resultado * 1_000_000
+            }
+
+            return resultado
+        }
+
+        const populacaoRegiao = converterValor(populacao)
+
+        const populacaoTotal = dadosPorRegiao.reduce(
+            (total, regiao) => total + Number(regiao.populacao),
+            0
+        )
+
+        const porcentagem = porcentagemPopulacaoRegiaoBrasil(
+            populacaoRegiao,
+            populacaoTotal
+        )
+        
         return (
             <li className={`relative border ${corDaBorda} ${cor}/20 p-3 rounded-xl flex flex-col justify-start gap-4 w-fit max-w-[300px] h-[280px] md:mx-auto w-full transition-all duration-200 hover:scale-105`}>
                 <div className="flex items-center gap-2">
@@ -27,19 +59,19 @@ export default function Page() {
                 </div>
                 <div className="flex flex-col">
                     <span className="text-sm font-semibold">População</span>
-                    <h4 className="text-2xl font-bold">18,7 Milhões</h4>
-                    <p className="text-sm">8,7% do Brasil</p>
+                    <h4 className="text-2xl font-bold">{populacao} Milhões</h4>
+                    <p className="text-sm">{porcentagem}% do Brasil</p>
                 </div>
                 <div className="mt-auto">
                     <span className="font-semibold">PIB per capita</span>
-                    <h4 className="text-xl font-bold">R$22.334</h4>
+                    <h4 className="text-xl font-bold">R${pib}</h4>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                     <HiArrowTrendingUp />
                     <span><b>+4,2</b> em relação a 2023</span>
                 </div>
-                <div className="absolute top-12 right-1">
-                    <div className="relative w-32 h-32">
+                <div className="absolute top-12 right-1 xl:top-28">
+                    <div className="relative w-32 h-32 xl:w-22 xl:22 3xl:w-28 3xl:h-28">
                         <Image alt="Mapa da região" src={imagem} fill className="object-contain" />
                     </div>
                 </div>
@@ -70,6 +102,27 @@ export default function Page() {
                 </div>
             </li>
         )
+    }
+
+    function formatarValor(valor: number): string {
+        return new Intl.NumberFormat("pt-BR", {
+            notation: "compact",
+            maximumFractionDigits: 1,
+        }).format(valor);
+    }
+
+    const porcentagemPopulacaoRegiaoBrasil = (
+        populacaoRegiao: number,
+        populacaoBrasil: number
+    ): string => {
+        if (populacaoBrasil <= 0) return "0%"
+
+        const porcentagem = (populacaoRegiao / populacaoBrasil) * 100
+
+        return porcentagem.toLocaleString("pt-BR", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+        })
     }
 
     return (
@@ -151,14 +204,99 @@ export default function Page() {
                     </div>
                 </div>
                 <ul className="flex flex-col items-center gap-4 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                    {gerarCardRegiaoDestaque(<LuLeaf />, 'bg-verde', 'border-verde', 'Norte', 'Acre, Amapá, Amazonas, Pará, Rondônia, Roraima e Tocantins.', '/regiao/norte.png', 'text-verde')}
-                    {gerarCardRegiaoDestaque(<FaRegSun />, 'bg-blue-600', 'border-blue-600', 'Nordeste', 'Alagoas, Bahia, Ceará, Maranhão, Paraíba, Pernanbuco, Piauí, Rio Grande do Norte e Sergipe', '/regiao/nordeste.png', 'text-blue-600')}
-                    {gerarCardRegiaoDestaque(<PiBagSimpleFill />, 'bg-purple-600', 'border-purple-600', 'Centro Oeste', 'Distrito Federal, Goiás, Mato Grosso e Mato Grosso do Sul', '/regiao/centro-oeste.png', 'text-purple-600')}
-                    {gerarCardRegiaoDestaque(<MdHomeWork />, 'bg-amber-600', 'border-amber-600', 'Sudeste', 'Espírito Santo, Minas Gerais, Rio de Janeiro, São Paulo', '/regiao/sudeste.png', 'text-amber-600')}
-                    {gerarCardRegiaoDestaque(<RiWindyLine />, 'bg-cyan-500', 'border-cyan-500', 'Sul', 'Paraná, Santa Catarina e Rio Grande do Sul.', '/regiao/sul.png', 'text-cyan-500')}
+                    {gerarCardRegiaoDestaque(<LuLeaf />, 'bg-verde', 'border-verde', 'Norte', '/regiao/norte.png', formatarValor(dadosPorRegiao[2].populacao), formatarValor(dadosPorRegiao[2].pib))}
+                    {gerarCardRegiaoDestaque(<FaRegSun />, 'bg-blue-600', 'border-blue-600', 'Nordeste', '/regiao/nordeste.png', formatarValor(dadosPorRegiao[1].populacao), formatarValor(dadosPorRegiao[1].pib))}
+                    {gerarCardRegiaoDestaque(<PiBagSimpleFill />, 'bg-purple-600', 'border-purple-600', 'Centro Oeste', '/regiao/centro-oeste.png', formatarValor(dadosPorRegiao[0].populacao), formatarValor(dadosPorRegiao[0].pib))}
+                    {gerarCardRegiaoDestaque(<MdHomeWork />, 'bg-amber-600', 'border-amber-600', 'Sudeste', '/regiao/sudeste.png', formatarValor(dadosPorRegiao[3].populacao), formatarValor(dadosPorRegiao[3].pib))}
+                    {gerarCardRegiaoDestaque(<RiWindyLine />, 'bg-cyan-500', 'border-cyan-500', 'Sul', '/regiao/sul.png', formatarValor(dadosPorRegiao[4].populacao), formatarValor(dadosPorRegiao[4].pib))}
                 </ul>
             </section>
-            <section className="bg-verde-claro/20 mx-4 p-4 max-w-[1600px] flex flex-col gap-4 xl:grid xl:grid-cols-[400px_1fr] xl:gap-8 xl:mx-auto">
+            <section className="p-4 max-w-[1600px] mx-auto w-full flex flex-col gap-4 xl:grid xl:grid-cols-2">
+                <div className="col-span-2">
+                    <h2 className="font-bold text-2xl">
+                        Comparação entre estados e regiões
+                    </h2>
+                    <p className="text-sm leading-5 text-zinc-600 max-w-[600px]">
+                        Explore e compare os indicadores entre os estados e as regiões do Brasil.
+                    </p>
+                </div>
+
+                <div className="shadow-[0px_0px_2px_1px_#999] rounded-lg p-4 md:grid md:grid-cols-2">
+                    <div className="relative w-[250px] h-[250px] mx-auto md:w-[300px] md:h-[300px] lg:w-[350px] lg:h-[350px] xl:w-[280px] xl:h-[280px] xl:my-auto 3xl:w-[310px] 3xl:h-[310px]">
+                        <Image alt="Mapa do Brasil" src={'/mapa-do-brasil.png'} fill className="object-contain" />
+                    </div>
+                    <div className="flex flex-col gap-5">
+                        <div className="flex flex-col gap-2">
+                            <h2 className="font-bold text-xl text-azul-escuro">
+                                Selecione um indicador
+                            </h2>
+                            <select name="indice" id="indice" className="rounded-lg shadow-[0px_0px_2px_1px_#999] p-2 text-lg w-full">
+                                <option value="">Selecione</option>
+                                <option value="">IDH</option>
+                                <option value="">População Total</option>
+                                <option value="">Espectativa de Vida</option>
+                                <option value="">Mortalidade Infantil</option>
+                            </select>
+                        </div>
+                        <div>
+                            <ul className="flex flex-col gap-2">
+                                <li className="flex justify-between border-b border-zinc-600 pb-1">
+                                    <p>Distrito Federal</p>
+                                    <span>0,814</span>
+                                </li>
+                                <li className="flex justify-between border-b border-zinc-600 pb-1">
+                                    <p>Distrito Federal</p>
+                                    <span>0,814</span>
+                                </li>
+                                <li className="flex justify-between border-b border-zinc-600 pb-1">
+                                    <p>Distrito Federal</p>
+                                    <span>0,814</span>
+                                </li>
+                                <li className="flex justify-between border-b border-zinc-600 pb-1">
+                                    <p>Distrito Federal</p>
+                                    <span>0,814</span>
+                                </li>
+                                <li className="flex justify-between border-b border-zinc-600 pb-1">
+                                    <p>Distrito Federal</p>
+                                    <span>0,814</span>
+                                </li>
+                                <li className="flex justify-between border-b border-zinc-600 pb-1">
+                                    <p>Distrito Federal</p>
+                                    <span>0,814</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div className="shadow-[0px_0px_2px_1px_#999] rounded-lg p-4 flex flex-col gap-4">
+                    <div>
+                        <h2 className="font-bold text-2xl">
+                            Comparativo entre regiões
+                        </h2>
+                        <p className="text-sm leading-5 text-zinc-600 max-w-[600px]">
+                            Veja como cada região se sai em diferentes indicadores
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                        <button className="px-2 py-1 rounded-2xl border border-zinc-800">
+                            <p>População</p>
+                        </button>
+                        <button className="px-2 py-1 rounded-2xl border border-zinc-800">
+                            <p>IDH</p>
+                        </button>
+                        <button className="px-2 py-1 rounded-2xl border border-zinc-800">
+                            <p>PIB per capita</p>
+                        </button>
+                        <button className="px-2 py-1 rounded-2xl border border-zinc-800">
+                            <p>Educação</p>
+                        </button>
+                    </div>
+                    <div>
+                        GRAFICO....
+                    </div>
+                </div>
+            </section>
+            <section className="bg-verde-claro/20 mx-4 p-4 mb-4 max-w-[1600px] flex flex-col gap-4 xl:grid xl:grid-cols-[400px_1fr] xl:gap-8 xl:mx-auto">
                 <div className="grid grid-cols-[60px_1fr] gap-2">
                     <div className="col-start-1 col-end-2 row-start-1 row-end-2 text-5xl">
                         <IoLocationOutline />
@@ -217,7 +355,24 @@ export default function Page() {
                     </ul>
                 </div>
             </section>
-
+            <section className="relative overflow-hidden p-4 bg-verde-claro/20 flex gap-4">
+                <div className="absolute -right-4 bottom-0 w-[300px] h-30 opacity-60 pointer-events-none hidden lg:block xl:w-[400px]">
+                    <Image alt="" src="/linhas.png" fill className="object-contain object-right" />
+                </div>
+                <div className="bg-verde/40 rounded-full w-20 h-20 flex justify-center items-center">
+                    <div className="relative w-16 h-16 md:row-span-2">
+                        <Image alt="Mapa do Brasil em verde" src="/mapa-do-brasil-verde.png" fill className="object-contain" />
+                    </div>
+                </div>
+                <div className="flex flex-col my-auto">
+                    <h3 className="relative font-black text-2xl text-verde-escuro">
+                        Juntos por um Brasil melhor
+                    </h3>
+                    <span className="relative col-span-2 md:col-span-1 md:col-start-2 md:col-end-3 md:text-lg">
+                        Dados são poder. Use a informação para compreender, participar e transformar!
+                    </span>
+                </div>
+            </section>
         </Template>
     )
 }

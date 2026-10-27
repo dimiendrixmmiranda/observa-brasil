@@ -97,3 +97,42 @@ export const calcularVariacaoEducacao = (
 
     return Number((taxaAnoAtual - taxaAnoAnterior).toFixed(1))
 }
+
+
+import { EstadoEconomico } from "@/types/EstadoEconomico";
+
+export type RegiaoEconomica = {
+    regiao: string;
+    pib: number;
+    populacao: number;
+    estados: number;
+    ano: number;
+};
+
+export function mapearEstadosPorRegiao(
+    estados: EstadoEconomico[]
+): RegiaoEconomica[] {
+    const regioes = new Map<string, RegiaoEconomica>();
+
+    for (const estado of estados) {
+        const regiaoExistente = regioes.get(estado.regiao);
+
+        if (regiaoExistente) {
+            regiaoExistente.pib += estado.pib;
+            regiaoExistente.populacao += estado.populacao;
+            regiaoExistente.estados += 1;
+        } else {
+            regioes.set(estado.regiao, {
+                regiao: estado.regiao,
+                pib: estado.pib,
+                populacao: estado.populacao,
+                estados: 1,
+                ano: estado.ano,
+            });
+        }
+    }
+
+    return Array.from(regioes.values()).sort((a, b) =>
+        a.regiao.localeCompare(b.regiao, "pt-BR")
+    );
+}

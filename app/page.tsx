@@ -1,25 +1,61 @@
-import Indicadores from "@/components/indicadores/Indicadores";
+import { Suspense } from "react";
 import Informacoes from "@/components/informacoes/Informacoes";
 import Inicio from "@/components/inicio/Inicio";
+import Indicadores from "@/components/indicadores/Indicadores";
 import Template from "@/components/template/Template";
-import { buscarDesigualdadeBrasil, buscarEconomiaEstados, buscarEducacao, buscarEducacaoBrasil, buscarEmpregoBrasil, buscarEscolarizacao, buscarEstados, buscarExpectativaVidaBrasil } from "@/lib/ibge";
-import { buscarPopulacaoBrasil } from "@/lib/ibge";
+import {
+    buscarDesigualdadeBrasil,
+    buscarEducacaoBrasil,
+    buscarEmpregoBrasil,
+    buscarExpectativaVidaBrasil,
+    buscarPopulacaoBrasil,
+} from "@/lib/ibge";
 
-export default async function Home() {
-    const populacaoDoBrasil = await buscarPopulacaoBrasil()
-    const populacaoEmpregada = await buscarEmpregoBrasil()
-    const expectativaDeVida = await buscarExpectativaVidaBrasil()
-    const indiceDesigualdade = await buscarDesigualdadeBrasil()
-    const indiceMatriculasEnsinoFundamental = await buscarEducacaoBrasil()
-    const estadoEconomico = await buscarEconomiaEstados()
-    console.log(estadoEconomico)
+async function DadosHome() {
+    const [
+        populacaoDoBrasil,
+        populacaoEmpregada,
+        expectativaDeVida,
+        indiceDesigualdade,
+        indiceMatriculasEnsinoFundamental,
+    ] = await Promise.all([
+        buscarPopulacaoBrasil(),
+        buscarEmpregoBrasil(),
+        buscarExpectativaVidaBrasil(),
+        buscarDesigualdadeBrasil(),
+        buscarEducacaoBrasil(),
+    ])
+
+    return (
+        <div className="max-w-[2000px] mx-auto">
+            <Informacoes
+                populacaoDoBrasil={populacaoDoBrasil}
+                taxaEmprego={populacaoEmpregada}
+                espectativaDeVida={expectativaDeVida}
+                desigualdade={indiceDesigualdade}
+                indiceMatriculasEnsinoFundamental={
+                    indiceMatriculasEnsinoFundamental
+                }
+            />
+            <Indicadores />
+        </div>
+    )
+}
+
+export default function Home() {
     return (
         <Template>
             <Inicio />
-            <div className="max-w-[2000px] mx-auto">
-                <Informacoes populacaoDoBrasil={populacaoDoBrasil} taxaEmprego={populacaoEmpregada} espectativaDeVida={expectativaDeVida} desigualdade={indiceDesigualdade} indiceMatriculasEnsinoFundamental={indiceMatriculasEnsinoFundamental}/>
-                <Indicadores />
-            </div>
+
+            <Suspense
+                fallback={
+                    <div className="max-w-[2000px] mx-auto p-6">
+                        Carregando indicadores do Brasil...
+                    </div>
+                }
+            >
+                <DadosHome />
+            </Suspense>
         </Template>
-    )
+    );
 }
